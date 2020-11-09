@@ -1,42 +1,24 @@
-require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const path = require("path");
 
+const mongoose = require("mongoose");
+const routes = require("./routes");
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-const app = express();
-
+// Define middleware here
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Serve up static assets (usually on heroku)
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+}
+// Add routes, both API and view
+app.use(routes);
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/my-mern", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-});
+// Connect to the Mongo DB
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/reactreadinglist");
 
-const connection = mongoose.connection;
-
-connection.on("connected", () => {
-  console.log("Mongoose successfully connected.");
-});
-
-connection.on("error", (err) => {
-  console.log("Mongoose connection error: ", err);
-});
-
-app.get("/api/config", (req, res) => {
-  res.json({
-    success: true,
-  });
-});
-app.use(express.static("client/build"));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "./client/build/index.html"));
-});
-
-app.listen(PORT, () => {
-  console.log(`App is running on http://localhost:${PORT}`);
+// Start the API server
+app.listen(PORT, function() {
+  console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`);
 });
